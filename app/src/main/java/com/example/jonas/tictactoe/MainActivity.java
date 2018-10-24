@@ -1,0 +1,228 @@
+package com.example.jonas.tictactoe;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.nfc.Tag;
+import android.os.Handler;
+import android.os.PersistableBundle;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.BottomNavigationView;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MAIN";
+    private TicTacToeConsole mGame;
+    private Button mBoardButtons[];
+    public enum DifficultyLevel {Easy, Harder, Expert};
+    private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
+    static final int DIALOG_DIFFICULTY_ID = 0;
+    static final int DIALOG_QUIT_ID = 1;
+    private BoardView mBoardView;
+    private boolean mGameOver = false;
+    public int winner;
+    private boolean mSoundOn = true;
+    private boolean mHumanTurn = true;
+
+
+    //sounds
+    MediaPlayer mHumanMediaPlayer;
+    MediaPlayer mComputerMediaPlayer;
+    //alert
+    AlertDialog.Builder builder;
+    AlertDialog dialog;
+    public void setAudio (){
+        Context context = MainActivity.this;
+        AudioManager audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        switch( audio.getRingerMode() ){
+            case AudioManager.RINGER_MODE_NORMAL:
+                mSoundOn=true;
+                break;
+            case AudioManager.RINGER_MODE_SILENT:
+                mSoundOn=false;
+                break;
+            case AudioManager.RINGER_MODE_VIBRATE:
+                mSoundOn=false;
+                break;
+        }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mGame = new TicTacToeConsole();
+        setAudio();
+        //mSoundOn = mPrefs.getBoolean("sound", true);
+        mBoardView = (BoardView) findViewById(R.id.board);
+        mBoardView.setGame(mGame);
+        mBoardView.setOnTouchListener(mTouchListener);
+        builder= new AlertDialog.Builder(MainActivity.this);
+        dialog=builder.create();
+        startNewGame();
+    }
+
+    public void startNewGame(){
+        mHumanTurn=true;
+        mGameOver=false;
+        mGame.clearBoard();
+        mBoardView.invalidate();
+    }
+
+    private boolean setMove(char player, int location) {
+        if (mGame.setMove(player, location)) {
+            mBoardView.invalidate();
+            return true;
+        }
+        return false;
+    }
+
+    private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
+
+        public boolean onTouch(View v, MotionEvent event) {
+            // Determine which cell was touched
+            int col = (int) event.getX() / mBoardView.getBoardCellWidth();
+            int row = (int) event.getY() / mBoardView.getBoardCellHeight();
+            int pos = row * 3 + col;
+
+            setMove(TicTacToeConsole.HUMAN_PLAYER, pos);
+            mHumanMediaPlayer.start();
+            winner = mGame.checkForWinner();
+            switch (winner){
+                case 0:
+                    computerTimeHandler();
+                    winner=mGame.checkForWinner();
+                    break;
+                case 1:
+                    mGameOver=true;
+                    builder.setTitle("Fin del Juego");
+                    builder.setMessage("Empate");
+                    builder.show();
+                    break;
+                case 2:
+                    mGameOver=true;
+                    builder.setTitle("Fin del Juego");
+                    builder.setMessage("Ganaste");
+                    builder.show();
+                    break;
+                case 3:
+                    mGameOver=true;
+                    builder.setTitle("Fin del Juego");
+                    builder.setMessage("Gana la computadora");
+                    builder.show();
+                    break;
+                default:
+
+                    break;
+
+            }
+            return false;
+        }
+    };
+
+
+@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+        navigation.inflateMenu(R.menu.options_menu);
+        navigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.new_game:
+                        startNewGame();
+                        break;
+                    case R.id.ai_difficulty:
+                        showDialog(DIALOG_DIFFICULTY_ID);
+                        break;
+                    case R.id.quit:
+                        showDialog(DIALOG_QUIT_ID);
+                        break;
+                }
+                return true;
+            }
+        });
+        return true;
+    }
+    protected Dialog onCreateDialog(int id) {
+        Dialog dialog = null;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        switch(id) {
+            case DIALOG_DIFFICULTY_ID:
+                builder.setTitle(R.string.difficutly_choose);
+                final CharSequence[] levels = {
+                        getResources().getString(R.string.difficutly_easy),
+                        getResources().getString(R.string.difficutly_harder),
+                        getResources().getString(R.string.difficutly_expert)};
+                int selected =0;
+                builder.setSingleChoiceItems(levels, selected,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int item) {
+                                dialog.dismiss();
+                                Toast.makeText(getApplicationContext(), levels[item],
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                dialog = builder.create();
+                break;
+            case DIALOG_QUIT_ID:
+
+                builder.setMessage(R.string.quit_question)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                MainActivity.this.finish();
+                            }
+                        })
+                        .setNegativeButton(R.string.no, null);
+                dialog = builder.create();
+                break;
+        }
+        return dialog;
+    }
+    public void computerTimeHandler(){
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                int move = mGame.getComputerMove();
+                setMove(TicTacToeConsole.COMPUTER_PLAYER, move);
+                mComputerMediaPlayer.start();
+            }
+        }, 1000);
+    }
+    protected void onResume() {
+        super.onResume();
+        mHumanMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sound1);
+        mComputerMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sound2);
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mHumanMediaPlayer.release();
+        mComputerMediaPlayer.release();
+    }
+
+
+}

@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">TicTacToe2</string>
+    <string name="title_activity_menu">Menu</string>
+    <string name="title_newGame">New Game</string>
+    <string name="title_mode">Mode</string>
+    <string name="title_quit">Quit</string>
+    <string name="difficutly_choose">Choose Difficulty</string>
+    <string name="difficutly_easy">easy</string>
+    <string name="difficutly_harder">harder</string>
+    <string name="difficutly_expert">expert</string>
+    <string name="quit_question">quit ?</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+</resources>
