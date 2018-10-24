@@ -147,4 +147,12 @@ public class TicTacToeConsole {
         }
     }
     public char getBoardOccupant(int i) {return mBoard[i]; }
+    public char[] getBoardState(){
+        return mBoard;
+    }
+
+    public void setBoardState(char[] _board){
+        mBoard=_board ;
+    }
+
 }

@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:visibility="visible"
-    tools:context=".MainActivity"
-    tools:layout_editor_absoluteY="25dp">
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <TableLayout
         android:layout_width="match_parent"
@@ -21,8 +16,8 @@
 
             <com.example.jonas.tictactoe.BoardView
                 android:id="@+id/board"
-                android:layout_width="350dp"
-                android:layout_height="350dp"></com.example.jonas.tictactoe.BoardView>
+                android:layout_width="250dp"
+                android:layout_height="250dp"></com.example.jonas.tictactoe.BoardView>
         </TableRow>
 
         <android.support.design.widget.BottomNavigationView
@@ -31,6 +26,5 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true" />
     </TableLayout>
-
 
 </android.support.constraint.ConstraintLayout>

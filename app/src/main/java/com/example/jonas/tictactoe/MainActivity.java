@@ -68,7 +68,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+
+/*
+        if(savedInstanceState == null){
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            mGame=new TicTacToeConsole();
+            setAudio();
+            mBoardView = findViewById(R.id.board);
+            mBoardView.setGame(mGame);
+            mBoardView.setOnTouchListener(mTouchListener);
+            builder= new AlertDialog.Builder(MainActivity.this);
+            startNewGame();
+        }*/
+
+      super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mGame = new TicTacToeConsole();
         setAudio();
@@ -80,7 +94,21 @@ public class MainActivity extends AppCompatActivity {
         dialog=builder.create();
         startNewGame();
     }
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //Log.d(TAG, "FLIP"+savedInstanceState.get("board"));
+        //Log.d(TAG, "board"+savedInstanceState.toString());
+        Log.d(TAG, "saved board"+ String.valueOf(savedInstanceState.getCharArray("board")));
+        mGame.setBoardState(savedInstanceState.getCharArray("board"));
+        mGameOver = savedInstanceState.getBoolean("mGameOver");
+    }
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
+        outState.putCharArray("board", mGame.getBoardState());
+        outState.putBoolean("mGameOver",mGameOver);
+
+    }
     public void startNewGame(){
         mHumanTurn=true;
         mGameOver=false;
