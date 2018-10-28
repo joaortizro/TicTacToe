@@ -13,17 +13,81 @@
         android:layout_height="match_parent">
 
         <TableRow
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
             android:layout_gravity="center"
-            >
-
+            android:layout_weight="1">
             <com.example.jonas.tictactoe.BoardView
                 android:id="@+id/board"
-                android:layout_width="350dp"
-                android:layout_height="350dp"></com.example.jonas.tictactoe.BoardView>
+                android:layout_width="wrap_content"
+                android:layout_height="350dp">
+            </com.example.jonas.tictactoe.BoardView>
         </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+
+            >
+            <RelativeLayout
+                android:layout_gravity="center">
+                <TextView
+                    android:id="@+id/score"
+                    android:layout_width="wrap_content"
+                    android:textStyle="bold"
+                    android:textSize="@dimen/activity_horizontal_margin"
+                    android:gravity="center_horizontal"
+                    android:layout_height="wrap_content"
+                    android:text="Scores"
+                />
+                <TextView
+                    android:id="@+id/human"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/score"
+                    android:text="Human:    "
+                    />
+                <TextView
+                    android:id="@+id/human_score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@+id/human"
+                    android:layout_alignRight="@+id/human"
+                    android:text="0"/>
+                <TextView
+                    android:id="@+id/android"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/human"
+                    android:text="Android:    "
+                    />
+                <TextView
+                    android:id="@+id/android_score"
+                    android:layout_width="wrap_content"
+                    android:layout_alignBaseline="@+id/android"
+                    android:layout_alignRight="@+id/android"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    />
+                <TextView
+                    android:id="@+id/ties"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/android"
+                    android:text="Ties:    "
+                    />
+                <TextView
+                    android:id="@+id/ties_score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBaseline="@id/ties"
+                    android:layout_alignRight="@+id/ties"
+                    android:text="0"/>
+            </RelativeLayout>
+
+
+        </TableRow>
+
+
 
         <android.support.design.widget.BottomNavigationView
             android:id="@+id/bottom_navigation"

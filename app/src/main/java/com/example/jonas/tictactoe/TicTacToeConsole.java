@@ -26,7 +26,7 @@ public class TicTacToeConsole {
     }
     private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
     private Random mRand;
-
+    private int mScore[]=new int [4];
     public TicTacToeConsole() {
 
         // Seed the random number generator
@@ -42,7 +42,6 @@ public class TicTacToeConsole {
     //  2 if x won
     //  3 if o won
     public int checkForWinner() {
-
         // Check horizontal wins
         for (int i = 0; i <= 6; i += 3)	{
             if (mBoard[i] == HUMAN_PLAYER &&
@@ -153,6 +152,11 @@ public class TicTacToeConsole {
 
     public void setBoardState(char[] _board){
         mBoard=_board ;
+    }
+    public int[] getScores(){
+        int winner=checkForWinner();
+        mScore[winner]+=1;
+        return mScore;
     }
 
 }
