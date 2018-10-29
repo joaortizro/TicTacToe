@@ -28,11 +28,13 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN";
     private TicTacToeConsole mGame;
-    private Button mBoardButtons[];
     public enum DifficultyLevel {Easy, Harder, Expert};
     private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
     static final int DIALOG_DIFFICULTY_ID = 0;
@@ -41,8 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean mGameOver = false;
     public int winner;
     private boolean mSoundOn = true;
-    private boolean mHumanTurn = true;
+    private int mScores[];
 
+
+    private SharedPreferences mPrefs;
 
     //sounds
     MediaPlayer mHumanMediaPlayer;
@@ -68,7 +72,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+      super.onCreate(savedInstanceState);
+        mPrefs = getSharedPreferences("ttt_prefs", MODE_PRIVATE);
         setContentView(R.layout.activity_main);
         mGame = new TicTacToeConsole();
         setAudio();
@@ -80,9 +85,32 @@ public class MainActivity extends AppCompatActivity {
         dialog=builder.create();
         startNewGame();
     }
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //Log.d(TAG, "Restore Score"+ Arrays.toString(savedInstanceState.getIntArray("mScores")));
+        mGame.setBoardState(savedInstanceState.getCharArray("board"));
+        mGameOver = savedInstanceState.getBoolean("mGameOver");
+        mScores = savedInstanceState.getIntArray("mScores");
+        setScores();
+    }
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
+        outState.putCharArray("board", mGame.getBoardState());
+        outState.putBoolean("mGameOver",mGameOver);
+        //Log.d(TAG, "saved Score"+Arrays.toString(mScores));
+        outState.putIntArray("mScores",mScores);
+
+    }
+    public void setScores(){
+        TextView ts=(TextView) findViewById(R.id.ties_score);
+        ts.setText(String.valueOf(mScores[1]));
+        TextView hs=(TextView) findViewById(R.id.human_score);
+        hs.setText(String.valueOf(mScores[2]));
+        TextView as=(TextView) findViewById(R.id.android_score);
+        as.setText(String.valueOf(mScores[3]));
+    }
     public void startNewGame(){
-        mHumanTurn=true;
         mGameOver=false;
         mGame.clearBoard();
         mBoardView.invalidate();
@@ -107,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
             setMove(TicTacToeConsole.HUMAN_PLAYER, pos);
             mHumanMediaPlayer.start();
             winner = mGame.checkForWinner();
+            mScores=mGame.getScores();
             switch (winner){
                 case 0:
                     computerTimeHandler();
@@ -117,24 +146,28 @@ public class MainActivity extends AppCompatActivity {
                     builder.setTitle("Fin del Juego");
                     builder.setMessage("Empate");
                     builder.show();
+                    setScores();
                     break;
                 case 2:
                     mGameOver=true;
                     builder.setTitle("Fin del Juego");
                     builder.setMessage("Ganaste");
                     builder.show();
+                    setScores();
                     break;
                 case 3:
                     mGameOver=true;
                     builder.setTitle("Fin del Juego");
                     builder.setMessage("Gana la computadora");
                     builder.show();
+                    setScores();
                     break;
                 default:
 
                     break;
 
             }
+
             return false;
         }
     };
@@ -222,6 +255,15 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         mHumanMediaPlayer.release();
         mComputerMediaPlayer.release();
+    }
+    protected void onStop() {
+        super.onStop();
+// Save the current scores
+        SharedPreferences.Editor ed = mPrefs.edit();
+        //ed.putInt("mHumanWins", mHumanWins);
+        //ed.putInt("mComputerWins", mComputerWins);
+        //ed.putInt("mTies", mTies);
+        ed.commit();
     }
 
 
