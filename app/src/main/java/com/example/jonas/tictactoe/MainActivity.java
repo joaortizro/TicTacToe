@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import 	android.preference.PreferenceManager;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -37,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private TicTacToeConsole mGame;
     public enum DifficultyLevel {Easy, Harder, Expert};
     private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
-    static final int DIALOG_DIFFICULTY_ID = 0;
     static final int DIALOG_QUIT_ID = 1;
     private BoardView mBoardView;
     private boolean mGameOver = false;
@@ -70,6 +71,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void setSettings(){
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mSoundOn = mPrefs.getBoolean("sound", true);
+        String difficultyLevel = mPrefs.getString("difficutly_level",
+                getResources().getString(R.string.difficutly_harder));
+/*        if (difficultyLevel.equals(getResources().getString(R.string.difficulty_easy)))
+            mGame.setDifficultyLevel(TicTacToeGame.DifficultyLevel.Easy);
+        else if (difficultyLevel.equals(getResources().getString(R.string.difficulty_harder)))
+            mGame.setDifficultyLevel(TicTacToeGame.DifficultyLevel.Harder);
+        else
+            mGame.setDifficultyLevel(TicTacToeGame.DifficultyLevel.Expert);*/
+    }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
@@ -77,14 +90,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mGame = new TicTacToeConsole();
         setAudio();
-        //mSoundOn = mPrefs.getBoolean("sound", true);
         mBoardView = (BoardView) findViewById(R.id.board);
         mBoardView.setGame(mGame);
         mBoardView.setOnTouchListener(mTouchListener);
         builder= new AlertDialog.Builder(MainActivity.this);
         dialog=builder.create();
+        setSettings();
         startNewGame();
     }
+
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         //Log.d(TAG, "Restore Score"+ Arrays.toString(savedInstanceState.getIntArray("mScores")));
@@ -185,8 +199,8 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.new_game:
                         startNewGame();
                         break;
-                    case R.id.ai_difficulty:
-                        showDialog(DIALOG_DIFFICULTY_ID);
+                    case R.id.settings:
+                        startActivityForResult(new Intent(MainActivity.this,Settings.class),0);
                         break;
                     case R.id.quit:
                         showDialog(DIALOG_QUIT_ID);
@@ -197,7 +211,16 @@ public class MainActivity extends AppCompatActivity {
         });
         return true;
     }
-    protected Dialog onCreateDialog(int id) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RESULT_CANCELED) {
+            mSoundOn = mPrefs.getBoolean("sound", true);
+            String difficultyLevel = mPrefs.getString("difficutly_level",
+                    getResources().getString(R.string.difficutly_harder));
+        }
+    }
+
+/*    protected Dialog onCreateDialog(int id) {
         Dialog dialog = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         switch(id) {
@@ -232,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         return dialog;
-    }
+    }*/
     public void computerTimeHandler(){
 
         final Handler handler = new Handler();
