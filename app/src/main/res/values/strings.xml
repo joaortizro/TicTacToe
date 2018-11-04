@@ -12,4 +12,6 @@
     <string name="yes">yes</string>
     <string name="no">no</string>
     <string name="result_human_wins">Has ganado</string>
+    <string name="result_android_wins">Gana Android</string>
+    <string name="result_tie">Gana Android</string>
 </resources>

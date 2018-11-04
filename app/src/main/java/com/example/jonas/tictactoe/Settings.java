@@ -1,6 +1,7 @@
 package com.example.jonas.tictactoe;
 
 import android.content.SharedPreferences;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -28,6 +29,21 @@ public class Settings extends PreferenceActivity {
                 return true;
             }
         });
+        final EditTextPreference victoryMessagePref = (EditTextPreference)
+                findPreference("victory_message");
+        final String victoryMessage = prefs.getString("victory_message",
+                getResources().getString(R.string.result_human_wins));
+        victoryMessagePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                victoryMessagePref.setSummary((CharSequence)newValue);
+                SharedPreferences.Editor ed = prefs.edit();
+                ed.putString("victory_message",newValue.toString());
+                ed.commit();
+                return true;
+            }
+        });
     }
+
 
 }
