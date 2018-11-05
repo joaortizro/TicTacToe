@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             int pos = row * 3 + col;
             String str;
             setMove(TicTacToeConsole.HUMAN_PLAYER, pos);
-            mHumanMediaPlayer.start();
+            if(mSoundOn)mHumanMediaPlayer.start();
             winner = mGame.checkForWinner();
             mScores=mGame.getScores();
             switch (winner){
@@ -208,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RESULT_CANCELED) {
             mSoundOn = mPrefs.getBoolean("sound", true);
+            Log.d(TAG, "onActivityResult: "+mSoundOn);
             String difficultyLevel = mPrefs.getString("difficutly_level",
                     getResources().getString(R.string.difficutly_harder));
             mVictoryMessage = mPrefs.getString("victory_message",
@@ -230,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 int move = mGame.getComputerMove();
                 setMove(TicTacToeConsole.COMPUTER_PLAYER, move);
-                mComputerMediaPlayer.start();
+                if (mSoundOn)mComputerMediaPlayer.start();
             }
         }, 1000);
     }

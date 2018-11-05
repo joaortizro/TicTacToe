@@ -43,6 +43,7 @@ public class Settings extends PreferenceActivity {
                 return true;
             }
         });
+
     }
 
 
