@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -12,6 +13,7 @@ import android.nfc.Tag;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.SystemClock;
+import android.preference.ListPreference;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
@@ -27,6 +29,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import 	android.preference.PreferenceManager;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -37,16 +40,16 @@ public class MainActivity extends AppCompatActivity {
     private TicTacToeConsole mGame;
     public enum DifficultyLevel {Easy, Harder, Expert};
     private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
-    static final int DIALOG_DIFFICULTY_ID = 0;
     static final int DIALOG_QUIT_ID = 1;
     private BoardView mBoardView;
     private boolean mGameOver = false;
     public int winner;
     private boolean mSoundOn = true;
     private int mScores[];
-
+    private String mVictoryMessage;
 
     private SharedPreferences mPrefs;
+
 
     //sounds
     MediaPlayer mHumanMediaPlayer;
@@ -70,6 +73,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void setSettings(){
+        mVictoryMessage = getResources().getString(R.string.result_human_wins);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mSoundOn = mPrefs.getBoolean("sound", true);
+        String difficultyLevel = mPrefs.getString("difficutly_level",
+                getResources().getString(R.string.difficutly_harder));
+    }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
@@ -77,17 +87,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mGame = new TicTacToeConsole();
         setAudio();
-        //mSoundOn = mPrefs.getBoolean("sound", true);
         mBoardView = (BoardView) findViewById(R.id.board);
         mBoardView.setGame(mGame);
         mBoardView.setOnTouchListener(mTouchListener);
         builder= new AlertDialog.Builder(MainActivity.this);
         dialog=builder.create();
+        setSettings();
         startNewGame();
     }
+
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //Log.d(TAG, "Restore Score"+ Arrays.toString(savedInstanceState.getIntArray("mScores")));
         mGame.setBoardState(savedInstanceState.getCharArray("board"));
         mGameOver = savedInstanceState.getBoolean("mGameOver");
         mScores = savedInstanceState.getIntArray("mScores");
@@ -95,10 +105,8 @@ public class MainActivity extends AppCompatActivity {
     }
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         outState.putCharArray("board", mGame.getBoardState());
         outState.putBoolean("mGameOver",mGameOver);
-        //Log.d(TAG, "saved Score"+Arrays.toString(mScores));
         outState.putIntArray("mScores",mScores);
 
     }
@@ -131,9 +139,9 @@ public class MainActivity extends AppCompatActivity {
             int col = (int) event.getX() / mBoardView.getBoardCellWidth();
             int row = (int) event.getY() / mBoardView.getBoardCellHeight();
             int pos = row * 3 + col;
-
+            String str;
             setMove(TicTacToeConsole.HUMAN_PLAYER, pos);
-            mHumanMediaPlayer.start();
+            if(mSoundOn)mHumanMediaPlayer.start();
             winner = mGame.checkForWinner();
             mScores=mGame.getScores();
             switch (winner){
@@ -144,30 +152,29 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     mGameOver=true;
                     builder.setTitle("Fin del Juego");
-                    builder.setMessage("Empate");
+                    str=getResources().getString(R.string.result_tie);
+                    builder.setMessage(str);
                     builder.show();
                     setScores();
                     break;
                 case 2:
                     mGameOver=true;
                     builder.setTitle("Fin del Juego");
-                    builder.setMessage("Ganaste");
+                    builder.setMessage(mVictoryMessage);
                     builder.show();
                     setScores();
                     break;
                 case 3:
                     mGameOver=true;
                     builder.setTitle("Fin del Juego");
-                    builder.setMessage("Gana la computadora");
+                    str=getResources().getString(R.string.result_android_wins);
+                    builder.setMessage(str);
                     builder.show();
                     setScores();
                     break;
                 default:
-
                     break;
-
             }
-
             return false;
         }
     };
@@ -185,8 +192,8 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.new_game:
                         startNewGame();
                         break;
-                    case R.id.ai_difficulty:
-                        showDialog(DIALOG_DIFFICULTY_ID);
+                    case R.id.settings:
+                        startActivityForResult(new Intent(MainActivity.this,Settings.class),0);
                         break;
                     case R.id.quit:
                         showDialog(DIALOG_QUIT_ID);
@@ -197,42 +204,25 @@ public class MainActivity extends AppCompatActivity {
         });
         return true;
     }
-    protected Dialog onCreateDialog(int id) {
-        Dialog dialog = null;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        switch(id) {
-            case DIALOG_DIFFICULTY_ID:
-                builder.setTitle(R.string.difficutly_choose);
-                final CharSequence[] levels = {
-                        getResources().getString(R.string.difficutly_easy),
-                        getResources().getString(R.string.difficutly_harder),
-                        getResources().getString(R.string.difficutly_expert)};
-                int selected =0;
-                builder.setSingleChoiceItems(levels, selected,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int item) {
-                                dialog.dismiss();
-                                Toast.makeText(getApplicationContext(), levels[item],
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                dialog = builder.create();
-                break;
-            case DIALOG_QUIT_ID:
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RESULT_CANCELED) {
+            mSoundOn = mPrefs.getBoolean("sound", true);
+            Log.d(TAG, "onActivityResult: "+mSoundOn);
+            String difficultyLevel = mPrefs.getString("difficutly_level",
+                    getResources().getString(R.string.difficutly_harder));
+            mVictoryMessage = mPrefs.getString("victory_message",
+                    getResources().getString(R.string.result_human_wins));
 
-                builder.setMessage(R.string.quit_question)
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                MainActivity.this.finish();
-                            }
-                        })
-                        .setNegativeButton(R.string.no, null);
-                dialog = builder.create();
-                break;
+
+
         }
-        return dialog;
+
     }
+    public void setVictoryMessage(){
+
+    }
+
     public void computerTimeHandler(){
 
         final Handler handler = new Handler();
@@ -241,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 int move = mGame.getComputerMove();
                 setMove(TicTacToeConsole.COMPUTER_PLAYER, move);
-                mComputerMediaPlayer.start();
+                if (mSoundOn)mComputerMediaPlayer.start();
             }
         }, 1000);
     }
@@ -258,13 +248,10 @@ public class MainActivity extends AppCompatActivity {
     }
     protected void onStop() {
         super.onStop();
-// Save the current scores
         SharedPreferences.Editor ed = mPrefs.edit();
-        //ed.putInt("mHumanWins", mHumanWins);
-        //ed.putInt("mComputerWins", mComputerWins);
-        //ed.putInt("mTies", mTies);
         ed.commit();
     }
+
 
 
 }
